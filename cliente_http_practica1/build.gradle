@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'edu.pucmm.eitc'
+version '1.0-SNAPSHOT'
+
+mainClassName='edu.pucmm.eitc.Main'
+
+run{
+    standardInput = System.in
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'org.apache.httpcomponents:httpclient:4.4'
+}
+
+test {
+    useJUnitPlatform()
+}
