@@ -35,8 +35,8 @@ public class Main {
 
             //Cantidad de imagenes dentro de parrafos
             if (para.size() != 0) {
-                Elements img = doc.select("p img");
-                System.out.println("La cantidad de imagenes dentro de parrafos es de: " + img.size());
+Elements img = doc.select("p img");
+System.out.println("La cantidad de imagenes dentro de parrafos es de: " + img.size());
             }
 
             //Buscar los formularios tipo post
@@ -94,10 +94,11 @@ public class Main {
                         .method(Method.POST)
                         .data("asignatura","practica1")
                         .header("matricula","20180520")
-                        .followRedirects(true)
                         .execute();
 
                 System.out.println("\nRespuesta del formulario POST #"+cont+": \n Status code=" + response.statusCode() + " ,URL=" + response.url());
+                System.out.println(" Headers: " + response.headers());
+
             } catch (IOException error) {
                 System.out.println("\nRespuesta: " + error);
             }
