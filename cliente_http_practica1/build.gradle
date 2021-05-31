@@ -8,6 +8,7 @@ version '1.0-SNAPSHOT'
 
 mainClassName='edu.pucmm.eitc.Main'
 
+//Este script es para poder usar el Scanner en el main usando la tarea run del plugin application
 run{
     standardInput = System.in
 }
