@@ -1,4 +1,4 @@
-package edu.pucmm.eitc;
+package edu.pucmm.eitc.encapsulaciones;
 
 public class Usuario {
     private String usuario;
