@@ -259,6 +259,14 @@ public class Main {
 
             ctx.redirect("/comprar");
         });
+
+        app.get("/logout", ctx -> {
+            if(ctx.cookie("usuario")!= null && ctx.cookie("mist")!= null){
+                ctx.removeCookie("usuario");
+                ctx.removeCookie("mist");
+            }
+            ctx.redirect("/");
+        });
     }
 
 }
