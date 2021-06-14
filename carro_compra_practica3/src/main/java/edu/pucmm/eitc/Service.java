@@ -19,6 +19,8 @@ public class Service {
     private long carrito;
 
     public Service() {
+        BootStrapServices.startDB();
+
         DBService.getInstance().testConnection();
         try {
             BootStrapServices.crearTablas();
