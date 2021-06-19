@@ -1,0 +1,16 @@
+edu/pucmm/eitc/encapsulaciones/VentasProductos.java
+ edu.pucmm.eitc.encapsulaciones.VentasProductos
+edu/pucmm/eitc/encapsulaciones/CarroCompra.java
+ edu.pucmm.eitc.encapsulaciones.CarroCompra
+edu/pucmm/eitc/Main.java
+ edu.pucmm.eitc.Main
+edu/pucmm/eitc/DBService.java
+ edu.pucmm.eitc.DBService
+edu/pucmm/eitc/BootStrapServices.java
+ edu.pucmm.eitc.BootStrapServices
+edu/pucmm/eitc/Service.java
+ edu.pucmm.eitc.Service
+edu/pucmm/eitc/encapsulaciones/Producto.java
+ edu.pucmm.eitc.encapsulaciones.Producto
+edu/pucmm/eitc/encapsulaciones/Usuario.java
+ edu.pucmm.eitc.encapsulaciones.Usuario
