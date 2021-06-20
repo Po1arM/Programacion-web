@@ -1,14 +1,24 @@
 package edu.pucmm.eitc.encapsulaciones;
 
+import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
-public class Producto {
+@Entity
+public class Producto implements Serializable {
+    @Id
+    @GeneratedValue
     private int id;
+
     private String nombre;
     private int precio;
+    @Transient
     private int cantidad;
-
-
+    @OneToMany
+    private List<Comentario> comentarios;
+    @OneToMany
+    private List<Foto> fotos;
     public Producto() {
         id = 0;
         nombre = "";
@@ -52,6 +62,22 @@ public class Producto {
 
     public int getCantidad() {
         return cantidad;
+    }
+
+    public List<Comentario> getComentarios() {
+        return comentarios;
+    }
+
+    public void setComentarios(List<Comentario> comentarios) {
+        this.comentarios = comentarios;
+    }
+
+    public List<Foto> getFotos() {
+        return fotos;
+    }
+
+    public void setFotos(List<Foto> fotos) {
+        this.fotos = fotos;
     }
 
     public int total(){

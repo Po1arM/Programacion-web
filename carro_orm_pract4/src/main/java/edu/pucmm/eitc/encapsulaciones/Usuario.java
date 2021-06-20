@@ -1,6 +1,13 @@
 package edu.pucmm.eitc.encapsulaciones;
 
-public class Usuario {
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.sql.rowset.serial.SerialArray;
+import java.io.Serializable;
+
+@Entity
+public class Usuario implements Serializable {
+    @Id
     private String usuario;
     private String password;
 

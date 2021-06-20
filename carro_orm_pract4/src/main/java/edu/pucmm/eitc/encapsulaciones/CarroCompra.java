@@ -1,14 +1,15 @@
 package edu.pucmm.eitc.encapsulaciones;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class CarroCompra {
+
     private long id;
     public ArrayList<Producto> productos;
 
-    public CarroCompra(long id) {
-        this.id = id;
+    public CarroCompra() {
         this.productos = new ArrayList<Producto>();
     }
     public long getId(){

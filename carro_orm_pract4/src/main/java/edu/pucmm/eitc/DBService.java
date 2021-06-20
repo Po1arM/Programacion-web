@@ -1,53 +1,86 @@
 package edu.pucmm.eitc;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class DBService {
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaQuery;
+import java.util.List;
 
-    private static DBService instance;
-    private String URL = "jdbc:h2:tcp://localhost/~/webmarket"; //Modo Server...
+public class DBService<T> {
 
-    private DBService(){
-        regDriver();
-    }
+    private static EntityManagerFactory emf;
+    private Class<T> clase;
 
-    public static DBService getInstance() {
-        if(instance == null){
-            instance = new DBService();
+    public DBService(Class<T> clase){
+        if(emf == null){
+            emf = Persistence.createEntityManagerFactory("MiUnidadPersistencia");
+            this.clase = clase;
         }
-        return instance;
     }
 
-    private void regDriver() {
+    public EntityManager getEntityManager(){
+        return emf.createEntityManager();
+    }
+
+    public T create(T entity) throws IllegalArgumentException, EntityExistsException, PersistenceException{
+        EntityManager em = getEntityManager();
         try{
-            Class.forName("org.h2.Driver");
-        }catch (ClassNotFoundException exception){
-            Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, exception);
-
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+        }finally {
+            em.close();
         }
+        return entity;
     }
 
-     public Connection getConnection() {
-        Connection connection = null;
+    public T edit(T entity) throws PersistenceException{
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+        try{
+            em.merge(entity);
+            em.getTransaction().commit();
+        }finally {
+            em.close();
+        }
+        return entity;
+    }
+
+    public boolean delete(Object entityID) throws PersistenceException{
+        boolean ok = false;
+        EntityManager em = getEntityManager();
+        em.getTransaction().begin();
+
+        try{
+            T entity = em.find(clase,entityID);
+            em.remove(entity);
+            em.getTransaction().commit();
+
+            ok = true;
+        }finally {
+            em.close();
+        }
+        return ok;
+    }
+    public T find(Object id) throws PersistenceException{
+        EntityManager em = getEntityManager();
+
         try {
-            connection = DriverManager.getConnection(URL, "admin","admin");
-        } catch (SQLException exception){
-            Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, exception);
+            return em.find(clase,id);
+        }finally {
+            em.close();
         }
-        return connection;
+
     }
 
-    public void testConnection() {
-        try {
-            getConnection().close();
-            System.out.println("Conexión realizado con exito...");
-        } catch (SQLException ex) {
-            Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
+    public List<T> findAll() throws PersistenceException {
+        EntityManager em = getEntityManager();
+        try{
+            CriteriaQuery<T> criteriaQuery = em.getCriteriaBuilder().createQuery(clase);
+            criteriaQuery.select(criteriaQuery.from(clase));
+            return em.createQuery(criteriaQuery).getResultList();
+        } finally {
+            em.close();
         }
     }
-
 }
+

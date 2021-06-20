@@ -4,11 +4,12 @@ import edu.pucmm.eitc.encapsulaciones.CarroCompra;
 import edu.pucmm.eitc.encapsulaciones.Producto;
 import edu.pucmm.eitc.encapsulaciones.Usuario;
 import edu.pucmm.eitc.encapsulaciones.VentasProductos;
+import edu.pucmm.eitc.servicios.ServiceProduct;
+import edu.pucmm.eitc.servicios.ServiceVentas;
 import io.javalin.Javalin;
 
 import io.javalin.plugin.rendering.JavalinRenderer;
 import io.javalin.plugin.rendering.template.JavalinVelocity;
-import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.jasypt.util.text.AES256TextEncryptor;
 
 import java.util.HashMap;
@@ -17,21 +18,24 @@ import java.util.Map;
 
 
 public class Main {
+
+    private static String modoConexion = "";
+
     public static void main(String[] args){
+
+        //Creacion de la controladora
+        //Service service = Service.getInstance();
 
         //Inicializacion del servidor
         Javalin app = Javalin.create().start(5000);
         //Instanciacion del motor de plantillas a utilizar
         JavalinRenderer.register(JavalinVelocity.INSTANCE, ".vm");
 
-        //Creacion de la controladora
-        Service service = Service.getInstance();
-
-        /*Si el carrito no existe dentro de la sesion entonces se crea y se agrega como un atributo*/
+        //Si el carrito no existe dentro de la sesion entonces se crea y se agrega como un atributo
         app.before(ctx -> {
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             if(carrito == null){
-                carrito = new CarroCompra(service.getCarrito());
+                carrito = new CarroCompra();
             }
             ctx.sessionAttribute("carrito",carrito);
 
@@ -41,7 +45,7 @@ public class Main {
         app.get("/", ctx -> {
             CarroCompra carrito = ctx.sessionAttribute("carrito");
 
-            List<Producto> productos = service.getProductos();
+            List<Producto> productos = ServiceProduct.getInstance().findAll();
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("productos",productos);
             modelo.put("cantidad",carrito.getProductos().size());
@@ -55,7 +59,7 @@ public class Main {
 
             Producto temp = carrito.getProductosPorID(ctx.formParam("id",Integer.class).get());
             if(temp == null){
-                temp = service.getProductosPorID(ctx.formParam("id",Integer.class).get());
+                temp = ServiceProduct.getInstance().find(ctx.formParam("id", Integer.class).get());
                 temp.setCantidad(ctx.formParam("cantidad",Integer.class).get() );
                 carrito.addProducto(temp);
                 ctx.sessionAttribute("carrito",carrito);
@@ -85,13 +89,13 @@ public class Main {
                 textEncryptor.setPassword("myEncryptionPassword");
                 String mist = textEncryptor.decrypt(ctx.cookie("mist"));
                 Usuario aux = new Usuario(ctx.cookie("usuario"),mist);
-                if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
+                /*if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
                     ctx.redirect("/autenti/ventas");
                     return;
-                }
+                }*/
             }
             CarroCompra carrito = ctx.sessionAttribute("carrito");
-            List<VentasProductos> ventas = service.getVentas();
+            List<VentasProductos> ventas = ServiceVentas.getInstance().findAll();
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("ventas",ventas);
             modelo.put("cantidad",carrito.getProductos().size());
@@ -111,12 +115,12 @@ public class Main {
                 textEncryptor.setPassword("myEncryptionPassword");
                 String mist = textEncryptor.decrypt(ctx.cookie("mist"));
                 Usuario aux = new Usuario(ctx.cookie("usuario"),mist);
-                if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
+                /*if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
                     ctx.redirect("/autenti/ventas");
                     return;
-                }
+                }*/
             }
-            List<Producto> productos = service.getProductos();
+            List<Producto> productos = ServiceProduct.getInstance().findAll();
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("productos",productos);
             CarroCompra carrito = ctx.sessionAttribute("carrito");
@@ -141,20 +145,20 @@ public class Main {
             int precio = ctx.formParam("precio",Integer.class).get();
 
             Producto temp = new Producto(nombre,precio);
-            service.registrarProducto(temp);
+            ServiceProduct.getInstance().create(temp);
             ctx.redirect("/productos");
         });
 
         /*Remueve un articulo de los disponibles a partir de su id*/
         app.get("/remover/:id", ctx -> {
-            service.eliminarProducto(ctx.pathParam("id",Integer.class).get());
+            ServiceProduct.getInstance().delete(ctx.pathParam("id",Integer.class).get());
             ctx.redirect("/productos");
         });
 
         /*Permite editar un producto ya agregado
         * Se envia un string para determinar que se realizará una modificación luego del post*/
         app.get("/editar/:id", ctx -> {
-            Producto temp = service.getProductosPorID(ctx.pathParam("id", Integer.class).get());
+            Producto temp = ServiceProduct.getInstance().find(ctx.pathParam("id", Integer.class).get());
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("producto",temp);
             modelo.put("accion","/editar/"+ctx.pathParam("id", Integer.class).get());
@@ -172,7 +176,7 @@ public class Main {
 
             Producto temp = new Producto(nombre,precio);
             temp.setId(ctx.pathParam("id",Integer.class).get());
-            service.actualizarProducto(temp);
+            ServiceProduct.getInstance().edit(temp);
 
             ctx.redirect("/productos");
         });
@@ -198,7 +202,7 @@ public class Main {
                 ctx.redirect("/autenti/"+temp);
             }
             Usuario user = new Usuario(usuario,pass);
-            service.autentificarUsuario(user);
+            //service.autentificarUsuario(user);
             AES256TextEncryptor textEncryptor = new AES256TextEncryptor();
             textEncryptor.setPassword("myEncryptionPassword");
             pass = textEncryptor.encrypt(pass);
@@ -218,7 +222,7 @@ public class Main {
         app.get("/carrito", ctx -> {
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             if(carrito == null){
-                carrito = new CarroCompra(service.getCarrito());
+                carrito = new CarroCompra();
             }
             ctx.sessionAttribute("carrito",carrito);
             Map<String, Object> modelo = new HashMap<>();
@@ -246,7 +250,7 @@ public class Main {
            }
            String nombre = ctx.formParam("nombre");
            VentasProductos venta = new VentasProductos(nombre,carrito.productos);
-           service.addVentas(venta);
+           ServiceVentas.getInstance().create(venta);
            carrito.borrarProductos();
            ctx.sessionAttribute("carrito",carrito);
            ctx.redirect("/comprar");
@@ -267,6 +271,10 @@ public class Main {
             }
             ctx.redirect("/");
         });
+    }
+
+    public static String getConnection(){
+        return modoConexion;
     }
 
 }

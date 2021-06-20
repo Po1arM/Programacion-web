@@ -20,6 +20,11 @@ dependencies {
     compile "org.apache.velocity:velocity-engine-core:2.2"
     compile 'com.h2database:h2:1.4.200'
     implementation 'org.jasypt:jasypt:1.9.3'
+
+    compile 'org.hibernate:hibernate-core:5.4.17.Final'
+    compile 'org.hibernate:hibernate-entitymanager:5.4.17.Final'
+
+    
 }
 
 test {
