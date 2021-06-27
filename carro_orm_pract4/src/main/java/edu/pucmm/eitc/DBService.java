@@ -86,15 +86,6 @@ public class DBService<T> {
         }
     }
 
-    public static SessionFactory getCurrentSessionFromJPA() {
-        // JPA and Hibernate SessionFactory example
-        EntityManagerFactory emf =
-                Persistence.createEntityManagerFactory("MiUnidadPersistencia");
-        EntityManager entityManager = emf.createEntityManager();
-        // Get the Hibernate Session from the EntityManager in JPA
-        Session session = entityManager.unwrap(org.hibernate.Session.class);
-        SessionFactory factory = session.getSessionFactory();
-        return factory;
-    }
+
 }
 

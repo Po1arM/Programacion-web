@@ -58,20 +58,22 @@
                   
               <p class="card-tect h4 mt-4">Sobre este producto: </p>    
               <p class="card-text h5 mb-4">${temp.desc}</p>
-
+                <form action="/comprar" method="post">
               <div class="form-group">
                 <div class="row g-3 align-items-center">
                     <div class="col-auto">
                         <label for="cantidad" class="h5">Cantidad: </label>               
                     </div>
                     <div class="col-auto ">
-                        <input class="form-control mb-2" type="number" id="cantidad">
+                        <input class="form-control mb-2" type="number" id="cantidad" min="0" value="0"name="cantidad">
+                        <input type="hidden" value="$temp.id" name="id">
+
                     </div>
               </div>
             </div>
 
-            <button type="button" class="btn btn-primary" style="margin-left: 15%;">Agregar al Carrito</button>
-        
+                    <input type="submit" class="btn btn-primary" value="Agregar">
+                </form>
         </div>
             
           </div>
@@ -83,7 +85,7 @@
           <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea2" name="coment" style="height: 100px"></textarea>
           <label for="floatingTextarea2">Comments</label>
         </div>      
-        <input type="submit" class="btn btn-primary ">Agregar Comentario</input>
+        <input type="submit" class="btn btn-primary " value="Agregar Comentario">
       </div>
         </form>
         #foreach($coment in $comments)

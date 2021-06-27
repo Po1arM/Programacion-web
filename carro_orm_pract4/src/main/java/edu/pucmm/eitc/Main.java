@@ -21,10 +21,9 @@ public class Main {
 
     public static void main(String[] args){
 
-        //Creacion de la controladora
-        //Service service = Service.getInstance();
 
         //Inicializacion del servidor
+        BootStrapServices.startDB();
         Javalin app = Javalin.create().start(5000);
         //Instanciacion del motor de plantillas a utilizar
         JavalinRenderer.register(JavalinVelocity.INSTANCE, ".vm");
