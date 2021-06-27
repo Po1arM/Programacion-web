@@ -17,6 +17,7 @@ public class Producto implements Serializable {
 
     private String nombre;
     private int precio;
+    @Transient
     private int cantidad;
     private String desc;
     @Column(columnDefinition = "boolean default true")
@@ -69,8 +70,6 @@ public class Producto implements Serializable {
     public int getCantidad() {
         return cantidad;
     }
-
-
 
     public List<Foto> getFotos() {
         return fotos;

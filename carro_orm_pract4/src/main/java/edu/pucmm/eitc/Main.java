@@ -108,7 +108,10 @@ public class Main {
                 }
             }
             CarroCompra carrito = ctx.sessionAttribute("carrito");
-            List<VentasProductos> ventas = ServiceVentas.getInstance().findAll();
+            List<VentasProductos> ventas = ServiceVentas.getInstance().getVentas();
+            for (VentasProductos venta: ventas) {
+                System.out.println(venta.getId());
+            }
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("ventas",ventas);
             modelo.put("cantidad",carrito.getProductos().size());
@@ -275,7 +278,9 @@ public class Main {
                ctx.redirect("/carrito");
            }
            String nombre = ctx.formParam("nombre");
-           VentasProductos venta = new VentasProductos(nombre,carrito.productos);
+           VentasProductos venta = new VentasProductos(nombre);
+           List<ProdComprado> list = ServiceProdComprado.getInstance().convertProd(carrito.productos,venta.getId());
+           venta.setListaProductos(list);
            ServiceVentas.getInstance().create(venta);
            carrito.borrarProductos();
            ctx.sessionAttribute("carrito",carrito);

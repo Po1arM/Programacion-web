@@ -17,17 +17,16 @@ public class VentasProductos implements Serializable {
     private Date fechaCompra;
     private String nombreCliente;
 
-    @OneToMany
-    private List<Producto> listaProductos;
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<ProdComprado> listaProductos;
 
     public VentasProductos() {
 
     }
 
-    public VentasProductos(String nombre, ArrayList<Producto> productos) {
+    public VentasProductos(String nombre) {
         this.nombreCliente = nombre;
-        this.listaProductos = productos;
-        this.fechaCompra = new Date();
+        fechaCompra = new Date();
     }
 
     public long getId() {
@@ -44,13 +43,13 @@ public class VentasProductos implements Serializable {
         return nombreCliente;
     }
 
-    public List<Producto> getListaProductos() {
+    public List<ProdComprado> getListaProductos() {
         return listaProductos;
     }
 
     public Integer getTotal(){
         Integer total = 0;
-        for (Producto producto : listaProductos) {
+        for (ProdComprado producto : listaProductos) {
             total += producto.getPrecio()*producto.getCantidad();
         }
         return total;
@@ -68,7 +67,7 @@ public class VentasProductos implements Serializable {
         this.nombreCliente = nombreCliente;
     }
 
-    public void setListaProductos(ArrayList<Producto> listaProductos) {
+    public void setListaProductos(List<ProdComprado> listaProductos) {
         this.listaProductos = listaProductos;
     }
 
