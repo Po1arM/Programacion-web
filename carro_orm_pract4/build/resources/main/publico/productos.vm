@@ -18,6 +18,7 @@
           <tr>
             <th scope="col">Producto</th>
             <th scope="col">Precio($RD)</th>
+            <th scope="col">Descripción</th>
             <th scope="col">Acción</th>
           </tr>
           </thead>
@@ -26,6 +27,7 @@
             <tr>
               <td>$producto.getNombre()</td>
               <td>$producto.getPrecio()</td>
+              <td>$producto.getDesc()</td>
               <td><a href="/editar/$producto.getId()" class="btn btn-primary">Editar</a>
                 <a href="/remover/$producto.getId()" class="btn btn-danger">Eliminar</a></td>
 
@@ -34,6 +36,7 @@
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 </div>

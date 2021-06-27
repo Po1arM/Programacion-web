@@ -1,20 +1,18 @@
 package edu.pucmm.eitc;
 
-import edu.pucmm.eitc.encapsulaciones.CarroCompra;
-import edu.pucmm.eitc.encapsulaciones.Producto;
-import edu.pucmm.eitc.encapsulaciones.Usuario;
-import edu.pucmm.eitc.encapsulaciones.VentasProductos;
-import edu.pucmm.eitc.servicios.ServiceProduct;
-import edu.pucmm.eitc.servicios.ServiceVentas;
+import edu.pucmm.eitc.encapsulaciones.*;
+import edu.pucmm.eitc.servicios.*;
 import io.javalin.Javalin;
 
 import io.javalin.plugin.rendering.JavalinRenderer;
 import io.javalin.plugin.rendering.template.JavalinVelocity;
+import org.hibernate.Session;
 import org.jasypt.util.text.AES256TextEncryptor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.io.IOException;
+import java.util.*;
 
 
 public class Main {
@@ -38,19 +36,34 @@ public class Main {
                 carrito = new CarroCompra();
             }
             ctx.sessionAttribute("carrito",carrito);
-
         });
+
         /*Ruta raiz
         * Muesta los productos disponibles para agragar al carrito*/
         app.get("/", ctx -> {
             CarroCompra carrito = ctx.sessionAttribute("carrito");
+            List<Producto> productos = ServiceProduct.getInstance().findProd(0, 10);
 
-            List<Producto> productos = ServiceProduct.getInstance().findAll();
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("productos",productos);
             modelo.put("cantidad",carrito.getProductos().size());
+            List<String> paginas = getPaginas();
+            modelo.put("paginas",paginas);
             ctx.render("/publico/listadoProductos.vm", modelo);
         });
+
+        app.get("/comprar/:id", ctx -> {
+            int pos = ctx.pathParam("id", Integer.class).get() * 10;
+            CarroCompra carrito = ctx.sessionAttribute("carrito");
+            List<Producto> productos = ServiceProduct.getInstance().findProd(pos, pos+10);
+            Map<String, Object> modelo = new HashMap<>();
+            modelo.put("productos",productos);
+            modelo.put("cantidad",carrito.getProductos().size());
+            List<String> paginas = getPaginas();
+            modelo.put("paginas",paginas);
+            ctx.render("/publico/listadoProductos.vm", modelo);
+        });
+
 
         /*Peticion que agrega un producto al carrito del usuario
         * Si el producto ya está en el carrito entonces se aumenta la cantidad que se quiere*/
@@ -89,10 +102,10 @@ public class Main {
                 textEncryptor.setPassword("myEncryptionPassword");
                 String mist = textEncryptor.decrypt(ctx.cookie("mist"));
                 Usuario aux = new Usuario(ctx.cookie("usuario"),mist);
-                /*if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
+                if(!ServiceUsuario.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
                     ctx.redirect("/autenti/ventas");
                     return;
-                }*/
+                }
             }
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             List<VentasProductos> ventas = ServiceVentas.getInstance().findAll();
@@ -115,12 +128,12 @@ public class Main {
                 textEncryptor.setPassword("myEncryptionPassword");
                 String mist = textEncryptor.decrypt(ctx.cookie("mist"));
                 Usuario aux = new Usuario(ctx.cookie("usuario"),mist);
-                /*if(!service.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
+                if(!ServiceUsuario.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
                     ctx.redirect("/autenti/ventas");
                     return;
-                }*/
+                }
             }
-            List<Producto> productos = ServiceProduct.getInstance().findAll();
+            List<Producto> productos = ServiceProduct.getInstance().findProd(0,0);
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("productos",productos);
             CarroCompra carrito = ctx.sessionAttribute("carrito");
@@ -143,15 +156,28 @@ public class Main {
         app.post("/registrar", ctx -> {
             String nombre = ctx.formParam("nombre");
             int precio = ctx.formParam("precio",Integer.class).get();
-
-            Producto temp = new Producto(nombre,precio);
+            String desc = ctx.formParam("desc");
+            List<Foto> fotos = new ArrayList<Foto>();
+            ctx.uploadedFiles("img").forEach(uploadedFile -> {
+                try {
+                    byte[] bytes = uploadedFile.getContent().readAllBytes();
+                    String encodedString = Base64.getEncoder().encodeToString(bytes);
+                    Foto foto = new Foto(uploadedFile.getFilename(), uploadedFile.getContentType(), encodedString);
+                    ServiceFoto.getInstancia().create(foto);
+                    fotos.add(foto);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            Producto temp = new Producto(nombre,precio,desc);
+            temp.setFotos(fotos);
             ServiceProduct.getInstance().create(temp);
             ctx.redirect("/productos");
         });
 
         /*Remueve un articulo de los disponibles a partir de su id*/
         app.get("/remover/:id", ctx -> {
-            ServiceProduct.getInstance().delete(ctx.pathParam("id",Integer.class).get());
+            ServiceProduct.getInstance().deleteProducto(ctx.pathParam("id",Integer.class).get());
             ctx.redirect("/productos");
         });
 
@@ -173,8 +199,8 @@ public class Main {
         app.post("/editar/:id", ctx -> {
             String nombre = ctx.formParam("nombre");
             int precio = ctx.formParam("precio",Integer.class).get();
-
-            Producto temp = new Producto(nombre,precio);
+            String desc = ctx.formParam("desc");
+            Producto temp = new Producto(nombre,precio,desc);
             temp.setId(ctx.pathParam("id",Integer.class).get());
             ServiceProduct.getInstance().edit(temp);
 
@@ -263,6 +289,17 @@ public class Main {
 
             ctx.redirect("/comprar");
         });
+        app.get("/ver/:id",ctx -> {
+            int id = ctx.pathParam("id", Integer.class).get();
+            Producto temp = ServiceProduct.getInstance().find(id);
+            List<Comentario> comments = ServiceComentario.getInstancia().findComments(id);
+            Map<String, Object> modelo = new HashMap<>();
+            String user = ctx.cookie("usuario");
+            modelo.put("temp",temp);
+            modelo.put("comments",comments);
+            modelo.put("user",user);
+            ctx.render("/publico/ver.vm",modelo);
+        });
 
         app.get("/logout", ctx -> {
             if(ctx.cookie("usuario")!= null && ctx.cookie("mist")!= null){
@@ -271,6 +308,32 @@ public class Main {
             }
             ctx.redirect("/");
         });
+
+        app.post("/addComment/:id", ctx->{
+           String comment = ctx.formParam("coment");
+           int id = ctx.pathParam("id", Integer.class).get();
+           Comentario temp = new Comentario(comment,id);
+           ServiceComentario.getInstancia().create(temp);
+           ctx.redirect("/ver/"+id);
+        });
+
+        app.get("/delComent/:id/:coment", ctx ->{
+            int id = ctx.pathParam("id", Integer.class).get();
+            int comment = ctx.pathParam("coment",Integer.class).get();
+            System.out.println("El id del comentario es: "+comment);
+            ServiceComentario.getInstancia().deleteComent(comment);
+            ctx.redirect("/ver/"+id);
+        });
+    }
+
+    private static List<String> getPaginas() {
+        int pag = ServiceProduct.getInstance().pag();
+        List<String> list = new ArrayList<String>();
+        for(int i = 0; i <= pag; i++){
+            String aux = "<a class=\"page-link\" href=\"/comprar/"+i+"\">"+(i+1)+"</a>";
+            list.add(aux);
+        }
+        return list;
     }
 
     public static String getConnection(){

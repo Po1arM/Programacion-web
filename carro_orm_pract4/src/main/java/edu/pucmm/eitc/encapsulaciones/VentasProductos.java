@@ -16,6 +16,7 @@ public class VentasProductos implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date fechaCompra;
     private String nombreCliente;
+
     @OneToMany
     private List<Producto> listaProductos;
 
@@ -26,9 +27,8 @@ public class VentasProductos implements Serializable {
     public VentasProductos(String nombre, ArrayList<Producto> productos) {
         this.nombreCliente = nombre;
         this.listaProductos = productos;
+        this.fechaCompra = new Date();
     }
-
-
 
     public long getId() {
         return id;
@@ -60,8 +60,8 @@ public class VentasProductos implements Serializable {
         this.id = id;
     }
 
-    public void setFechaCompra(Date fechaCompra) {
-        this.fechaCompra = fechaCompra;
+    public void setFechaCompra() {
+        fechaCompra = new Date();
     }
 
     public void setNombreCliente(String nombreCliente) {
@@ -71,4 +71,5 @@ public class VentasProductos implements Serializable {
     public void setListaProductos(ArrayList<Producto> listaProductos) {
         this.listaProductos = listaProductos;
     }
+
 }

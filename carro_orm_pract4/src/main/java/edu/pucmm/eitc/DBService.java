@@ -1,6 +1,9 @@
 package edu.pucmm.eitc;
 
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaQuery;
 import java.util.List;
@@ -81,6 +84,17 @@ public class DBService<T> {
         } finally {
             em.close();
         }
+    }
+
+    public static SessionFactory getCurrentSessionFromJPA() {
+        // JPA and Hibernate SessionFactory example
+        EntityManagerFactory emf =
+                Persistence.createEntityManagerFactory("MiUnidadPersistencia");
+        EntityManager entityManager = emf.createEntityManager();
+        // Get the Hibernate Session from the EntityManager in JPA
+        Session session = entityManager.unwrap(org.hibernate.Session.class);
+        SessionFactory factory = session.getSessionFactory();
+        return factory;
     }
 }
 

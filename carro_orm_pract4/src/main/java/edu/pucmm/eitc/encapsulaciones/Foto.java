@@ -21,6 +21,7 @@ public class Foto implements Serializable {
         this.nombre = nombre;
         this.mimeType = mimeType;
         this.fotoBase64 = fotoBase64;
+
     }
 
     public Long getId() {

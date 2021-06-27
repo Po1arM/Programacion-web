@@ -1,5 +1,9 @@
 package edu.pucmm.eitc.encapsulaciones;
 
+import org.hibernate.annotations.ColumnDefault;
+
+import javassist.runtime.Desc;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -13,20 +17,22 @@ public class Producto implements Serializable {
 
     private String nombre;
     private int precio;
-    @Transient
     private int cantidad;
-    @OneToMany
-    private List<Comentario> comentarios;
-    @OneToMany
+    private String desc;
+    @Column(columnDefinition = "boolean default true")
+    private boolean estado;
+    @OneToMany(fetch = FetchType.EAGER)
     private List<Foto> fotos;
-    public Producto() {
-        id = 0;
-        nombre = "";
-        precio = 0;
-    }
-    public Producto(String nombre, int precio) {
+
+    public Producto(String nombre, int precio, String desc) {
         this.nombre = nombre;
         this.precio = precio;
+        estado = true;
+        this.desc = desc;
+    }
+
+    public Producto() {
+
     }
 
     public int getId() {
@@ -64,13 +70,7 @@ public class Producto implements Serializable {
         return cantidad;
     }
 
-    public List<Comentario> getComentarios() {
-        return comentarios;
-    }
 
-    public void setComentarios(List<Comentario> comentarios) {
-        this.comentarios = comentarios;
-    }
 
     public List<Foto> getFotos() {
         return fotos;
@@ -80,7 +80,23 @@ public class Producto implements Serializable {
         this.fotos = fotos;
     }
 
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
     public int total(){
         return precio * cantidad;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }

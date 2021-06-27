@@ -4,6 +4,7 @@ import edu.pucmm.eitc.DBService;
 import edu.pucmm.eitc.encapsulaciones.Producto;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import java.util.List;
 
@@ -21,10 +22,30 @@ public class ServiceProduct extends DBService<Producto> {
         return instance;
     }
 
-    public List<Producto> getProductos(){
+    public void deleteProducto(Object id){
+        Producto entity = find(id);
+        entity.setEstado(false);
+        entity = edit(entity);
+    }
+
+
+    public List<Producto> findProd(int ini, int fin) throws PersistenceException {
         EntityManager em = getEntityManager();
-        Query query = em.createQuery("SELECT * FROM producto", Producto.class);
-        List<Producto> productos = query.getResultList();
-        return  productos;
+        Query query = em.createNativeQuery("select * from PRODUCTO WHERE ESTADO = true ", Producto.class);
+        query.setFirstResult(ini);
+        if(fin != 0) {
+            query.setMaxResults(fin);
+        }
+        List<Producto> lista = query.getResultList();
+        return lista;    }
+
+    public int pag() {
+        int pageSize = 10;
+        EntityManager em = getEntityManager();
+        Query query = em.createNativeQuery("select * from PRODUCTO WHERE ESTADO = true ", Producto.class);
+        int countResults = query.getResultList().size();
+        int lastPageNumber = (int) (Math.ceil(countResults / pageSize));
+        System.out.println(countResults);
+        return  lastPageNumber;
     }
 }

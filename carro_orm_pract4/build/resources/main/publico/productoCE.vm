@@ -14,7 +14,7 @@
           <h3>Crear producto</h3>
         </div>
         <div class="card-body">
-          <form method="post" action="$accion" >
+          <form method="post" action="$accion" enctype="multipart/form-data">
           <div class="form-group">
 
           #if($producto == $null)
@@ -29,9 +29,9 @@
               <label for="desc">Descripción</label>
               <textarea class="form-control" id="desc" name="desc"></textarea>
              </div>
-             <div class="form-group">
+             <div class="form-group mb-2">
                 <label for="img">Imagenes</label>
-                 <input type="file" class="form-control" id="img" name="img">
+                 <input type="file" class="form-control mb-2" id="img" name="img" multiple accept="image/*">
              </div>
           #else
               <label for="nombre">Nombre: </label>
@@ -40,6 +40,10 @@
             <div class="form-group">
               <label for="precio">Precio: </label>
               <input type="number" class="form-control" id="precio" name="precio" min="1" value="$producto.precio">
+              </div>
+               <div class="form-group">
+              <label for="desc">Descripción</label>
+              <textarea class="form-control" id="desc" name="desc">$producto.desc</textarea>
            #end
           </div>
 
