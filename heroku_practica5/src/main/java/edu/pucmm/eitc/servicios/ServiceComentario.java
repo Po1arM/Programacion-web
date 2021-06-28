@@ -26,8 +26,7 @@ public class ServiceComentario extends DBService<Comentario> {
 
     public List<Comentario> findComments(int id) {
         EntityManager em = getEntityManager();
-        Query query = em.createQuery("select e from Comentario e where e.estado = true and e.productoId like :id");
-        query.setParameter("id", id);
+        Query query = em.createQuery("select e from Comentario e where e.estado = true and e.productoId = " + id);
         List<Comentario> lista = query.getResultList();
         return lista;
     }

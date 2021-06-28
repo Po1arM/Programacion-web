@@ -27,7 +27,7 @@
             <tr>
               <td>$producto.getNombre()</td>
               <td>$producto.getPrecio()</td>
-              <td>$producto.getDesc()</td>
+              <td>$producto.getDescri()</td>
               <td><a href="/editar/$producto.getId()" class="btn btn-primary">Editar</a>
                 <a href="/remover/$producto.getId()" class="btn btn-danger">Eliminar</a></td>
 

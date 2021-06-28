@@ -16,6 +16,7 @@
       <div class="card-body">
         <tag>Nombre del Cliente: </tag>
         <input id="nombre" name="nombre" required >
+        <input id="nombre" name="nombre" required >
       </div>
     </div>
   </div>

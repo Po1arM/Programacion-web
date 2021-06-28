@@ -37,6 +37,15 @@
       #end
     </tbody>
   </table>
+  <div class="m-auto">
+    <nav aria-label="...">
+      <ul class="pagination pagination-sm">
+        #foreach($pag in $paginas)
+        <li class="page-item">${pag}</li>
+        #end
+      </ul>
+    </nav>
+  </div>
   </div>
 
 </div>

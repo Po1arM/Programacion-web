@@ -15,16 +15,16 @@
 
         <properties>
             <property name="hibernate.archive.autodetection" value="class"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:h2:tcp://localhost/~/webmarket" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://ec2-54-225-228-142.compute-1.amazonaws.com:5432/d4pfs2tt6ns2au?sslmode=require" />
             <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
-            <property name="javax.persistence.jdbc.user" value="admin" />
-            <property name="javax.persistence.jdbc.password" value="admin" />
+            <property name="javax.persistence.jdbc.user" value="qdnusagelkebbp" />
+            <property name="javax.persistence.jdbc.password" value="89aace01f99d4109eb1734dafc455d4d2a98edfbab0f02757be8c08a8388d85a" />
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL9Dialect"/>
             <property name="hibernate.show_sql" value="true"/>
             <!-- Indica como será la generación de las tablas en el motor-->
             <!-- ver la documentación: https://docs.oracle.com/javaee/7/tutorial/persistence-intro005.htm -->
             <!--<property name="eclipselink.logging.level" value="ALL" />-->
-            <!-- <property name="javax.persistence.schema-generation.database.action" value="create-drop"/>-->
+            <property name="javax.persistence.schema-generation.database.action" value="update"/>
 
         </properties>
     </persistence-unit>

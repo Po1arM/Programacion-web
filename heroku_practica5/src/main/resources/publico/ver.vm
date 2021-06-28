@@ -57,7 +57,7 @@
                 
                   
               <p class="card-tect h4 mt-4">Sobre este producto: </p>    
-              <p class="card-text h5 mb-4">${temp.desc}</p>
+              <p class="card-text h5 mb-4">${temp.descri}</p>
                 <form action="/comprar" method="post">
               <div class="form-group">
                 <div class="row g-3 align-items-center">

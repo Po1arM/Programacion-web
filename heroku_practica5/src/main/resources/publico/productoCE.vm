@@ -43,7 +43,7 @@
               </div>
                <div class="form-group">
               <label for="desc">Descripción</label>
-              <textarea class="form-control" id="desc" name="desc" required>$producto.desc</textarea>
+              <textarea class="form-control" id="desc" name="desc" required>$producto.descri</textarea>
            #end
           </div>
 

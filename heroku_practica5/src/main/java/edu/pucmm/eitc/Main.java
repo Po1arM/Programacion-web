@@ -23,8 +23,8 @@ public class Main {
 
 
         //Inicializacion del servidor
-        BootStrapServices.startDB();
-        Javalin app = Javalin.create().start(5000);
+        //BootStrapServices.startDB();
+        Javalin app = Javalin.create().start(getHerokuAssignedPort());
         //Instanciacion del motor de plantillas a utilizar
         JavalinRenderer.register(JavalinVelocity.INSTANCE, ".vm");
 
@@ -294,9 +294,8 @@ public class Main {
             ctx.redirect("/comprar");
         });
         app.get("/ver/:id",ctx -> {
-            int id = ctx.pathParam("id", Integer.class).get();
-            Producto temp = ServiceProduct.getInstance().find(id);
-            List<Comentario> comments = ServiceComentario.getInstancia().findComments(id);
+            Producto temp = ServiceProduct.getInstance().find(ctx.pathParam("id", Integer.class).get());
+            List<Comentario> comments = ServiceComentario.getInstancia().findComments(temp.getId());
             Map<String, Object> modelo = new HashMap<>();
             String user = ctx.cookie("usuario");
             modelo.put("temp",temp);
@@ -338,6 +337,14 @@ public class Main {
             list.add(aux);
         }
         return list;
+    }
+
+    public static int getHerokuAssignedPort(){
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get("PORT") != null) {
+            return Integer.parseInt(processBuilder.environment().get("PORT"));
+        }
+        return 7000; //Retorna el puerto por defecto en caso de no estar en Heroku.
     }
 
     public static String getConnection(){

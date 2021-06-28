@@ -1,12 +1,7 @@
 package edu.pucmm.eitc.encapsulaciones;
 
-import org.hibernate.annotations.ColumnDefault;
-
-import javassist.runtime.Desc;
-
 import javax.persistence.*;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -14,12 +9,11 @@ public class Producto implements Serializable {
     @Id
     @GeneratedValue
     private int id;
-
     private String nombre;
+    private String descri;
     private int precio;
     @Transient
     private int cantidad;
-    private String desc;
     @Column(columnDefinition = "boolean default true")
     private boolean estado;
     @OneToMany(fetch = FetchType.EAGER)
@@ -29,7 +23,7 @@ public class Producto implements Serializable {
         this.nombre = nombre;
         this.precio = precio;
         estado = true;
-        this.desc = desc;
+        descri = desc;
     }
 
     public Producto() {
@@ -91,11 +85,11 @@ public class Producto implements Serializable {
         return precio * cantidad;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getDescri() {
+        return descri;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setDescri(String descri) {
+        this.descri = descri;
     }
 }
