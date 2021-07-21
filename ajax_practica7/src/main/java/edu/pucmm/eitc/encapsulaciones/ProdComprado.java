@@ -1,16 +1,15 @@
 package edu.pucmm.eitc.encapsulaciones;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
+@IdClass(ProdID.class)
 public class ProdComprado implements Serializable {
     @Id
-    private int productId;
-    @Id
     private long ventaID;
+    @Id
+    private int productId;
     private int cantidad;
     private int precio;
     private String nombre;
@@ -65,5 +64,18 @@ public class ProdComprado implements Serializable {
 
     public int total(){
         return cantidad * precio;
+    }
+}
+class ProdID implements Serializable {
+    @Id
+    private long ventaID;
+    @Id
+    private int productId;
+
+    public ProdID() {}
+
+    public ProdID(long ventaID, int productId) {
+        this.ventaID = ventaID;
+        this.productId = productId;
     }
 }

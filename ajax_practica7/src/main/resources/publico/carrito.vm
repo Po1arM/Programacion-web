@@ -45,10 +45,34 @@
       </table>
     </div>
     <div class="container-fluid align-center">
-      <button type="submit" class="btn btn-primary">Proceder</button>
+      <button type="submit" class="btn btn-primary" id="boton">Proceder</button>
       <button type="button" class="btn btn-secondary" onclick="location.href='/limpiar'">Limpiar Carrito</button>
     </div>
   </div>
   </form>
 </div>
+<script type="text/javascript" >#include("/publico/jquery-3.2.1.min.js")</script>
+<script>
+  var webSocket
+  var tiempoRect = 5000
+
+  $(document).ready(function (){
+    conectar();
+
+    $('#boton').click(function (){
+      webSocket.send("activar")
+    })
+  })
+  function conectar(){
+    webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/admini");
+  }
+
+  function verificarConexion(){
+    if(!webSocket || webSocket.readyState == 3){
+      conectar();
+    }
+  }
+
+  setInterval(verificarConexion, tiempoRect); //para reconectar.
+</script>
 #include("publico/footer.vm")

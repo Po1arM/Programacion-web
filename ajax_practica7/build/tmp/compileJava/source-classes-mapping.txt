@@ -2,6 +2,7 @@ edu/pucmm/eitc/encapsulaciones/Comentario.java
  edu.pucmm.eitc.encapsulaciones.Comentario
 edu/pucmm/eitc/encapsulaciones/ProdComprado.java
  edu.pucmm.eitc.encapsulaciones.ProdComprado
+ edu.pucmm.eitc.encapsulaciones.ProdID
 edu/pucmm/eitc/encapsulaciones/Usuario.java
  edu.pucmm.eitc.encapsulaciones.Usuario
 edu/pucmm/eitc/encapsulaciones/Foto.java

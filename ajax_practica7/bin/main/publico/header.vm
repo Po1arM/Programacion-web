@@ -5,7 +5,46 @@
     <title>WebMarket - Carrito de compra</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
+    <script type="text/javascript" >#include("/publico/jquery-3.2.1.min.js")</script>
+    <script>
+        var webSocket;
+        var tiempoReconectar = 5000;
+
+        $(document).ready(function() {
+            conectar();
+        })
+
+        function conectar(){
+            webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/admini");
+
+            if($usuario != null) {
+                webSocket.onopen = function (e) {
+                    console.log("Conectado - status " + this.readyState);
+                }
+                webSocket.onclose = function (e) {
+                    console.log("Desconectado - status " + this.readyState);
+                }
+            }
+        }
+
+        function verificarConexion(){
+            if(!webSocket || webSocket.readyState == 3){
+                conectar();
+            }
+        }
+
+        function close(){
+            webSocket.onclose = function (e) {
+                console.log("Desconectado - status " + this.readyState);
+            }
+            return true
+        }
+
+        setInterval(verificarConexion, tiempoReconectar);
+    </script>
+
 </head>
+
 <body>
 <nav class="navbar navbar-light bg-light navbar-expand-sm">
     <a href="#" class="navbar-brand">Web-Market</a>
@@ -17,13 +56,18 @@
             <li class="nav-item"><a href="/comprar" class="nav-link">Comprar</a> </li>
             <li class="nav-item"><a href="/ventas" class="nav-link">Ventas</a> </li>
             <li class="nav-item"><a href="/productos" class="nav-link">Administrar Productos</a> </li>
+
+            <li class="nav-item"><a href="/admin" class="nav-link" >Estadisticas</a> </li>
+
             #if($cantidad == $null)
                 <li class="nav-item"><a href="/carrito" class="nav-link">Carrito (0)</a> </li>
             #else
                 <li class="nav-item"><a href="/carrito" class="nav-link">Carrito ($cantidad)</a> </li>
             #end
-            <li class="nav-item"><a href="/logout" class="nav-link">Log-out</a> </li>
 
+            #if($cookie.usuario.value != $null)
+                <li class="nav-item"><a href="/logout" class="nav-link" onclick="close()">Log-out</a> </li>
+            #end
         </ul>
     </div>
 </nav>

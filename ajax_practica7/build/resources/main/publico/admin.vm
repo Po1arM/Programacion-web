@@ -1,0 +1,103 @@
+#parse("publico/header.vm")
+<div class="row row-cols-1 row-cols-md-5 g-4 mb-3 mt-3 m-auto  text-center" style="max-width: 97%">
+
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Usuarios En Linea</h5>
+            </div>
+            <div class="card-body">
+                <p id = "cantidad" class="card-text">$cantUser</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col" >
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Total de Ventas</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text" id = "ventas">$cantVentas</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col" >
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Total de Productos</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">$cantProd</p>
+            </div>
+        </div>
+    </div>
+
+
+
+    </div>
+
+    <div class="m-auto" id="piechart" style="width: 90%; height: 500px;"></div>
+<script type="text/javascript">#parse("publico/jquery-3.2.1.min.js")</script>
+<script>
+    $(document).ready(function(){
+
+        var evtSource = new EventSource("/estats")
+
+        evtSource.addEventListener("estadistica", function(e) {
+            e.data
+            drawChart(generarGrafico(e.data));
+
+        }, false);
+
+        evtSource.addEventListener("ventas", function(e) {
+            $("#ventas").text(e.data);
+        }, false);
+    });
+    function generarGrafico(data){
+        data = data.replace(/{|}/gi, '')
+        var b = data.split(',')
+        var res = [["Productos","Cantidad"]]
+
+        if(b[0] === ""){
+            res.push(["No hay ventas",1])
+            console.log("Shees")
+            return res
+        }
+        for(var i = 0; i < b.length; i++){
+            var arr = []
+            var aux = b[i].split("=")
+            arr.push(aux[0],parseInt(aux[1]))
+            res.push(arr)
+        }
+
+        console.log(res)
+        return res
+    }
+
+
+
+</script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart(datos) {
+        if(datos === undefined){
+            datos = generarGrafico("$estats")
+        }
+        var data = google.visualization.arrayToDataTable(datos);
+
+        var options = {
+            title: 'Productos Vendidos'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+    }
+</script>
+
+#parse("publico/footer.vm")

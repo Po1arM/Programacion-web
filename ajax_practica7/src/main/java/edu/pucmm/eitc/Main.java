@@ -3,34 +3,36 @@ package edu.pucmm.eitc;
 import edu.pucmm.eitc.encapsulaciones.*;
 import edu.pucmm.eitc.servicios.*;
 import io.javalin.Javalin;
+import io.javalin.http.sse.SseClient;
 
 import io.javalin.plugin.rendering.JavalinRenderer;
+import io.javalin.plugin.rendering.template.JavalinFreemarker;
 import io.javalin.plugin.rendering.template.JavalinVelocity;
-import org.hibernate.Session;
 import org.jasypt.util.text.AES256TextEncryptor;
+import org.eclipse.jetty.websocket.api.Session;
 
-import javax.imageio.ImageIO;
-import java.awt.Image;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+
 import java.io.IOException;
 import java.util.*;
-import java.io.ByteArrayOutputStream;
-import java.awt.image.BufferedImage;
-import java.io.File;
+
 
 public class Main {
 
     private static String modoConexion = "";
+    public static List<Session> usuariosConectados = new ArrayList<>();
+    public static List<SseClient> listaSseUsuario = new ArrayList<>();
 
     public static void main(String[] args){
 
 
         //Inicializacion del servidor
         BootStrapServices.startDB();
-        Javalin app = Javalin.create().start(5000);
+        Javalin app = Javalin.create(javalinConfig -> {
+            javalinConfig.addStaticFiles("/publico");
+        }).start(5000);
         //Instanciacion del motor de plantillas a utilizar
         JavalinRenderer.register(JavalinVelocity.INSTANCE, ".vm");
+        JavalinRenderer.register(JavalinFreemarker.INSTANCE, ".ftl");
 
         crearUsuarios();
 
@@ -40,10 +42,14 @@ public class Main {
             if(carrito == null){
                 carrito = new CarroCompra();
             }
+
             ctx.sessionAttribute("carrito",carrito);
         });
 
-        /*Registra un producto en el sistema a partir de los valores del formulario*/
+        app.after(ctx -> {
+           System.out.println(ctx.attributeMap().toString());
+        });
+                /*Registra un producto en el sistema a partir de los valores del formulario*/
         app.post("/registrar", ctx -> {
             String nombre = ctx.formParam("nombre");
             int precio = ctx.formParam("precio",Integer.class).get();
@@ -71,9 +77,9 @@ public class Main {
             Producto temp = ServiceProduct.getInstance().find(id);
             List<Comentario> comments = ServiceComentario.getInstancia().findComments(id);
             Map<String, Object> modelo = new HashMap<>();
-            String user = ctx.cookie("usuario");
             modelo.put("temp",temp);
             modelo.put("comments",comments);
+            String user = ctx.cookie("usuario");
             modelo.put("user",user);
             ctx.render("/publico/ver.vm",modelo);
         });
@@ -113,6 +119,8 @@ public class Main {
             modelo.put("cantidad",carrito.getProductos().size());
             List<String> paginas = getPaginas();
             modelo.put("paginas",paginas);
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/listadoProductos.vm", modelo);
         });
 
@@ -125,6 +133,8 @@ public class Main {
             modelo.put("cantidad",carrito.getProductos().size());
             List<String> paginas = getPaginas();
             modelo.put("paginas",paginas);
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/listadoProductos.vm", modelo);
         });
 
@@ -179,7 +189,8 @@ public class Main {
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("ventas",ventas);
             modelo.put("cantidad",carrito.getProductos().size());
-
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/ventas.vm",modelo);
         });
 
@@ -205,6 +216,8 @@ public class Main {
             modelo.put("productos",productos);
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             modelo.put("cantidad",carrito.getProductos().size());
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/productos.vm",modelo);
         });
 
@@ -216,6 +229,8 @@ public class Main {
             modelo.put("accion","/registrar");
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             modelo.put("cantidad",carrito.getProductos().size());
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/productoCE.vm",modelo);
         });
 
@@ -237,6 +252,8 @@ public class Main {
 
             CarroCompra carrito = ctx.sessionAttribute("carrito");
             modelo.put("cantidad",carrito.getProductos().size());
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/productoCE.vm",modelo);
         });
 
@@ -259,6 +276,8 @@ public class Main {
             String direc = ctx.pathParam("direc");
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("direc",direc);
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/autentificacion.vm",modelo);
         });
 
@@ -300,6 +319,8 @@ public class Main {
             Map<String, Object> modelo = new HashMap<>();
             modelo.put("productos",carrito.getProductos());
             modelo.put("cantidad",carrito.getProductos().size());
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
             ctx.render("/publico/carrito.vm",modelo);
         });
         /*Elimina un producto del carrito a partir de su id*/
@@ -324,10 +345,20 @@ public class Main {
            VentasProductos venta = new VentasProductos(nombre);
            List<ProdComprado> list = ServiceProdComprado.getInstance().convertProd(carrito.productos,venta.getId());
            venta.setListaProductos(list);
+
            ServiceVentas.getInstance().create(venta);
            carrito.borrarProductos();
            ctx.sessionAttribute("carrito",carrito);
-           ctx.redirect("/comprar");
+            String estadisticas = calcularEstadisticas().toString();
+            System.out.println(estadisticas);
+            int ventas = ServiceVentas.getInstance().getVentas().size();
+            for (SseClient cliente: listaSseUsuario) {
+                cliente.sendEvent("estadistica",estadisticas);
+            }
+            for (SseClient cliente: listaSseUsuario) {
+                cliente.sendEvent("ventas", Integer.toString(ventas));
+            }
+            ctx.redirect("/comprar");
         });
 
         /*Limpia el carrito del usuario*/
@@ -337,8 +368,126 @@ public class Main {
 
             ctx.redirect("/comprar");
         });
-        
+
+        app.get("/admin", ctx-> {
+            if( ctx.cookie("usuario") == null || ctx.cookie("mist")== null){
+                ctx.redirect("/autenti/admin");
+                return;
+            } else{
+                AES256TextEncryptor textEncryptor = new AES256TextEncryptor();
+                textEncryptor.setPassword("myEncryptionPassword");
+                String mist = textEncryptor.decrypt(ctx.cookie("mist"));
+                Usuario aux = new Usuario(ctx.cookie("usuario"),mist);
+                if(!ServiceUsuario.autentificarUsuario(aux).equalsIgnoreCase("ADM")){
+                    ctx.redirect("/autenti/admin");
+                    return;
+                }
+            }
+            int cantVentas = ServiceVentas.getInstance().getVentas().size();
+            int cantUsusarios = usuariosConectados.size();
+            int cantProd = ServiceProduct.getInstance().findAll().size();
+            String estadisticas = calcularEstadisticas().toString();
+            Map<String, Object> modelo = new HashMap<>();
+            modelo.put("cantUser",cantUsusarios);
+            modelo.put("cantVentas",cantVentas);
+            modelo.put("cantProd",cantProd);
+            modelo.put("estats",estadisticas);
+            String user = ctx.cookie("usuario");
+            modelo.put("user",user);
+            ctx.render("/publico/admin.vm",modelo);
+        });
+
+        app.get("/comentarios/:id",ctx -> {
+            int id = ctx.pathParam("id", Integer.class).get();
+            List<Comentario> comments = ServiceComentario.getInstancia().findComments(id);
+            String comentarios = "";
+            for (Comentario comentario: comments) {
+                String url = "/delComent/" + id + "/"+ comentario.getId();
+                comentarios +=  "<div class=\"card m-auto mt-2\" style=\"max-width: 80%; margin-top: 20px;\">\n" +
+                        "                <div class=\"card-header\">\n" +
+                        "                    <h5>Anonimo</h>\n" +
+                        "                </div>\n" +
+                        "                <div class=\"card-body\">\n" +
+                        "                    <div class=\"row g-2 align-items-center\">\n" +
+                        "                        <div class=\"col-auto\">\n" +
+                        "                            <h6>"+comentario.getComentario()+"</h6>\n" +
+                        "                        </div>\n" +
+                        "                        <div  id = \"btn\" class=\"col-auto \" style=\"margin-left: 80%;\">\n" +
+                        "                            <a id = \"btn\" href="+url+" class=\"btn btn-danger\">Eliminar</a>\n" +
+                        "                        </div>\n" +
+                        "                    </div>\n" +
+                        "                </div>\n" +
+                        "            </div>\n" +
+                        "        </div>";
+            }
+            ctx.result(comentarios);
+        });
+
+        app.sse("estats", sseClient -> {
+            System.out.println("Conectado");
+            listaSseUsuario.add(sseClient);
+            sseClient.onClose(() -> {
+                listaSseUsuario.remove(sseClient);
+            });
+        });
+
+
+        app.ws("/admini", ws->{
+            //Cuando se registra una venta
+            ws.onConnect(ctx -> {
+                System.out.println("Conexión Iniciada - "+ctx.getSessionId());
+                if(!usuariosConectados.contains(ctx.session)) {
+                    usuariosConectados.add(ctx.session);
+                }
+
+            });
+
+            ws.onMessage(ctx -> {
+                enviarEstadisticas();
+            });
+
+            ws.onClose(ctx -> {
+                System.out.println("Conexión Cerrada - "+ctx.getSessionId());
+                usuariosConectados.remove(ctx.session);
+                enviarEstadisticas();
+
+            });
+
+
+
+        });
     }
+
+    private static void enviarEstadisticas() {
+        int cantidad = usuariosConectados.size();
+        for (Session sesion: usuariosConectados){
+            try {
+                sesion.getRemote().sendString(Integer.toString(cantidad));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static Map<String, Integer> calcularEstadisticas() {
+        System.out.println("=======================================");
+
+        Map<String, Integer> mapa = new HashMap<>();
+        List<ProdComprado> productos = ServiceProdComprado.getInstance().getProd();
+        for (ProdComprado aux : productos) {
+            if(mapa.containsKey(aux.getNombre())){
+                int valAux = mapa.get(aux.getNombre());
+                mapa.put(aux.getNombre(), aux.getCantidad() + valAux);
+            }else {
+                mapa.put(aux.getNombre(), aux.getCantidad());
+            }
+            System.out.println(aux.getNombre()+mapa.get(aux.getNombre()));
+        }
+        System.out.println("=======================================");
+
+        return mapa;
+    }
+
     private static void crearUsuarios(){
         String nombre;
         int precio;

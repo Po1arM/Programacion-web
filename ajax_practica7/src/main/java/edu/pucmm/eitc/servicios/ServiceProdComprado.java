@@ -5,6 +5,8 @@ import edu.pucmm.eitc.encapsulaciones.ProdComprado;
 import edu.pucmm.eitc.encapsulaciones.Producto;
 import edu.pucmm.eitc.encapsulaciones.VentasProductos;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,5 +30,12 @@ public class ServiceProdComprado extends DBService<ProdComprado> {
             list.add(temp);
         }
         return list;
+    }
+
+    public List<ProdComprado> getProd() {
+        EntityManager em = getEntityManager();
+        Query query = em.createNativeQuery("select * from PRODCOMPRADO ", ProdComprado.class);
+        List<ProdComprado> lista = query.getResultList();
+        return lista;
     }
 }
